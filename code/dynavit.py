@@ -13,7 +13,6 @@ Original file is located at
 import torch
 from torch import nn, einsum
 from torch.utils.data import DataLoader, SequentialSampler, RandomSampler
-from torchvision.datasets import CIFAR10, CIFAR100, ImageNet
 from torch.optim import Adam, lr_scheduler
 from torchvision import transforms
 
