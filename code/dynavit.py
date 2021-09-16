@@ -28,7 +28,7 @@ import re
 
 from tqdm import tqdm
 
-device = torch.device('cuda')
+device = torch.device('cuda:1')
 
 # helpers
 
@@ -581,6 +581,18 @@ def train(
                     epochs = args["epochs"], loss_fn = args["loss_fn"],
                     width_list = width_list, optimizer=optimizer, scheduler=scheduler
                     )
+
+        if method == "sandwich":
+            print("Training Sandwich")
+            width_list = sorted(width_list)
+            path = os.path.join(args["model_path"], "model_width_sandwich.pt")
+            train_sandwich(
+                    model, path = path,
+                    train_data = train_data, eval_data = eval_data,
+                    epochs = args["epochs"], loss_fn = args["loss_fn"],
+                    width_min = width_list[0], width_max = width_list[-1], n_widths=len(width_list), 
+                    optimizer=optimizer, scheduler=scheduler
+                    )
             
         if method == "difflayernorm":
             print("Training Different Layer Norm wise")
@@ -683,6 +695,66 @@ def train_model(model, train_data, eval_data, path, epochs, loss_fn, optimizer, 
                 outputs = model(inputs)
                 loss = loss_fn(outputs, labels)
                 eval_loss += loss.item()*inputs.size(0)
+        
+        eval_loss = eval_loss/len(eval_data.sampler)
+        scheduler.step(metrics=eval_loss)
+
+        if eval_loss < best_eval_loss:
+            torch.save(model.state_dict(), path)
+            best_eval_loss = eval_loss
+
+        print(f"Validation loss = {eval_loss}")
+
+def train_sandwich(model, train_data, eval_data, path, epochs, loss_fn,  
+                        optimizer, scheduler, layernorm=False, width_min = 0.25, width_max = 1, n_widths=5, 
+                   **args
+                   ):
+    model.train()
+    best_eval_loss = 1e8
+    
+    for epoch in tqdm(range(epochs), desc="Epochs", leave=False):
+        total_loss = 0.0
+        print(f"\nEpoch: {epoch}")
+
+        for i, data in enumerate(tqdm(train_data, desc="Training", leave=False)):
+
+            inputs, labels = tuple(t.to(device) for t in data)
+            optimizer.zero_grad()
+            width_list_loss = 0.0
+            width_list = list(np.random.choice(np.arange(256*width_min, 256*width_max), n_widths-2))
+            width_list = [width_min] + width_list + [width_max]
+            for j, width in enumerate(width_list):
+                model.apply(lambda m: setattr(m, 'width_mult', width))
+                if layernorm:
+                    outputs = model(inputs, width_n=j)
+                else:
+                    outputs = model(inputs)
+                loss = loss_fn(outputs, labels)
+                width_list_loss += loss.item()
+                loss.backward()
+            optimizer.step()
+
+            total_loss += (width_list_loss/len(width_list))*inputs.size(0)
+        
+        print(f"Train loss = {total_loss/len(train_data.sampler)}")
+
+        model.eval()
+        eval_loss = 0.0
+
+        with torch.no_grad():
+            for i, data in enumerate(tqdm(eval_data, desc="Evaluating", leave=False)):
+                inputs, labels = tuple(t.to(device) for t in data)
+                width_list_loss = 0.0
+                for j, width in enumerate(width_list):
+                    model.apply(lambda m: setattr(m, 'width_mult', width))
+                    if layernorm:
+                        outputs = model(inputs, width_n=j)
+                    else:
+                        outputs = model(inputs)
+                    loss = loss_fn(outputs, labels)
+                    width_list_loss += loss.item()
+
+                eval_loss += (width_list_loss/len(width_list))*inputs.size(0)
         
         eval_loss = eval_loss/len(eval_data.sampler)
         scheduler.step(metrics=eval_loss)

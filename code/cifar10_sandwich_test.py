@@ -19,13 +19,13 @@ model = DynaViT(
             image_size=32, patch_size=8, num_classes=10, dim=256, dim_head=64, heads=4,
             depth=6, mlp_dim=512, dropout=0.1, emb_dropout=0.1, channels=3, pool='cls'
         )
-model.load_state_dict(torch.load("../models/cifar10/model_width_naive.pt"))
+model.load_state_dict(torch.load("../models/cifar10/model_width_sandwich.pt"))
 
 print_metrics(
     model, test_loader,
     [
      (accuracy_score, {}),
       ],
-    width_list=[0.2, 0.4, 0.6, 0.8, 1.0],
-    width_switch=True
+    width_list=[0.2, 0.4, 0.6, 0.8, 1.0]
+    
     )
