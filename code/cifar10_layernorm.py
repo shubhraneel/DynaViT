@@ -9,14 +9,6 @@ import torch
 import torch.nn as nn
 import sys
 
-if torch.cuda.is_available():
-    device = torch.device('cuda')
-    print(f'{torch.cuda.device_count()} GPU(s) available.')
-    print('Device name:', torch.cuda.get_device_name(0))
-else:
-    sys.exit('No GPU available.')
-    
-
 """### CIFAR-10"""
 path = "../data/"
 
