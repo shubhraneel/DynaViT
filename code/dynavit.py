@@ -7,7 +7,6 @@ Original file is located at
     https://colab.research.google.com/drive/1OlHUmZxRsbG_7RDCHzI43_ZUtVDNIs6G
 """
 
-!pip install einops
 
 """### Importing Libraries"""
 
