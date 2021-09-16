@@ -28,6 +28,8 @@ import re
 
 from tqdm import tqdm
 
+device = torch.device('cuda')
+
 # helpers
 
 def pair(t):
