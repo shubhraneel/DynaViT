@@ -1,6 +1,6 @@
 from dynavit import DynaViT, train, print_metrics
 
-from torchvision.datasets import imagenet
+from torchvision.datasets import ImageNet
 from sklearn.metrics import accuracy_score
 
 from torch.utils.data import RandomSampler, DataLoader, SequentialSampler
@@ -19,10 +19,10 @@ else:
 """### CIFAR-10"""
 path = "../data/tiny-imagenet-200"
 
-train_dataset = imagenet(path, transform=transforms.ToTensor())
+train_dataset = ImageNet(path, transform=transforms.ToTensor())
 train_sampler = RandomSampler(train_dataset)
 train_loader = DataLoader(train_dataset, sampler=train_sampler, batch_size=64)
-test_dataset = imagenet(path, split='val', transform=transforms.ToTensor(), train=False)
+test_dataset = ImageNet(path, split='val', transform=transforms.ToTensor(), train=False)
 test_sampler = SequentialSampler(test_dataset)
 test_loader = DataLoader(test_dataset, sampler=test_sampler, batch_size=64)
 
