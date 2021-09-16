@@ -3,7 +3,7 @@ import os
 
 class_dict = {}
 
-path = "./data/tiny-imagenet-200/val"
+path = "../data/tiny-imagenet-200/val"
 
 with open(os.path.join(path, "val_annotations.txt")) as f:
     for line in f:
@@ -21,7 +21,7 @@ for class_l in class_dict:
         
 class_dict = {}
 
-path = "./data/tiny-imagenet-200/test"
+path = "../data/tiny-imagenet-200/test"
 
 with open(os.path.join(path, "val_annotations.txt")) as f:
     for line in f:
