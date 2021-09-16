@@ -16,9 +16,7 @@ from torch.utils.data import DataLoader, SequentialSampler, RandomSampler
 from torch.optim import Adam, lr_scheduler
 from torchvision import transforms
 
-import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
@@ -31,8 +29,6 @@ import re
 from tqdm import tqdm
 
 # helpers
-def show_torch_img(image):
-    plt.imshow(transforms.ToPILImage()(image))
 
 def pair(t):
     return t if isinstance(t, tuple) else (t, t)
