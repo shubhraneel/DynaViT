@@ -20,7 +20,6 @@ else:
 """### CIFAR-10"""
 path_train = "../data/tiny-imagenet-200/train"
 path_val = "../data/tiny-imagenet-200/val"
-path_test = "../data/tiny-imagenet-200/test"
 
 train_dataset = ImageFolder(path_train, transform=transforms.ToTensor())
 train_sampler = RandomSampler(train_dataset)
@@ -28,9 +27,6 @@ train_loader = DataLoader(train_dataset, sampler=train_sampler, batch_size=64)
 val_dataset = ImageFolder(path_val, transform=transforms.ToTensor(), train=False)
 val_sampler = SequentialSampler(val_dataset)
 val_loader = DataLoader(val_dataset, sampler=val_sampler, batch_size=64)
-test_dataset = ImageFolder(path_test, transform=transforms.ToTensor(), train=False)
-test_sampler = SequentialSampler(test_dataset)
-test_loader = DataLoader(test_dataset, sampler=test_sampler, batch_size=64)
 
 train(
     train_loader, val_loader, mode='full', # method='incremental', width_list = [0.2, 0.4, 0.6, 0.8, 1],
@@ -46,7 +42,7 @@ model = DynaViT(
 model.load_state_dict(torch.load("../models/imagenet200/model.pt"))
 
 print_metrics(
-    model, test_loader,
+    model, val_loader,
     [
      (accuracy_score, {}),
       ],
