@@ -46,12 +46,18 @@ def soft_cross_entropy(predicts, targets):
 """
 
 class PreNorm(nn.Module):
-    def __init__(self, dim, fn):
+    def __init__(self, dim, fn, widths = None):
         super().__init__()
-        self.norm = nn.LayerNorm(dim)
+        self.widths = widths
+        if widths is None:
+            self.norm = nn.LayerNorm(dim)
+        else:
+            self.norms = nn.ModuleList([nn.LayerNorm(dim) for _ in range(widths)])
         self.fn = fn
-    def forward(self, x, **kwargs):
-        return self.fn(self.norm(x), **kwargs)
+    def forward(self, x, width_n=None, **kwargs):
+        if self.widths is None:
+            return self.fn(self.norm(x), **kwargs)
+        return self.fn(self.norms[width_n](x), **kwargs)
 
 """### Feed Forward"""
 
@@ -231,24 +237,24 @@ class Transformer(nn.Module):
                 PreNorm(dim, Attention(dim, heads = heads, dim_head = dim_head, dropout = dropout)),
                 PreNorm(dim, FeedForward(dim, mlp_dim, dropout = dropout))
             ]))
-    def forward(self, x, head_mask = None, return_states = False):
+    def forward(self, x, head_mask = None, return_states = False, width_n=None):
         hidden_states = []
         for i, (attn, ff) in enumerate(self.layers):
-            x = attn(x, head_mask = head_mask[i]) + x
-            x = ff(x) + x
+            x = attn(x, head_mask = head_mask[i], width_n=width_n) + x
+            x = ff(x, width_n=width_n) + x
             hidden_states.append(x)
         if return_states:
             return x, hidden_states
         return x
 
 class DynamicTransformer(Transformer):
-    def __init__(self, dim, depth, heads, dim_head, mlp_dim, dropout = 0., width_mult = 1.0):
+    def __init__(self, dim, depth, heads, dim_head, mlp_dim, dropout = 0., width_mult = 1.0, widths=None):
         super(DynamicTransformer, self).__init__(dim, depth, heads, dim_head, mlp_dim, dropout=dropout)
         self.layers = nn.ModuleList([])
         for _ in range(depth):
             self.layers.append(nn.ModuleList([
-                PreNorm(dim, DynamicAttention(dim, heads = heads, dim_head = dim_head, dropout = dropout, width_mult = width_mult)),
-                PreNorm(dim, DynamicFeedForward(dim, mlp_dim, heads, dropout = dropout, width_mult = width_mult))
+                PreNorm(dim, DynamicAttention(dim, heads = heads, dim_head = dim_head, dropout = dropout, width_mult = width_mult), widths=widths),
+                PreNorm(dim, DynamicFeedForward(dim, mlp_dim, heads, dropout = dropout, width_mult = width_mult), widths=widths)
             ]))
 
 """### Vision Transformer"""
@@ -289,7 +295,7 @@ class ViT(nn.Module):
 
         self.depth = depth
 
-    def forward(self, img, head_mask = None, return_states = False):
+    def forward(self, img, head_mask = None, return_states = False, width_n=None):
         x = self.to_patch_embedding(img)
         b, n, _ = x.shape
 
@@ -300,7 +306,7 @@ class ViT(nn.Module):
 
         if head_mask is None:
             head_mask = [None] * self.depth
-            trans_out = self.transformer(x, head_mask=head_mask, return_states=return_states)
+            trans_out = self.transformer(x, head_mask=head_mask, return_states=return_states, width_n=width_n)
         else:
             if head_mask.dim() == 1:
                 head_mask = head_mask.unsqueeze(0).unsqueeze(0).unsqueeze(-1).unsqueeze(-1)
@@ -308,7 +314,7 @@ class ViT(nn.Module):
             elif head_mask.dim() == 2:
                 head_mask = head_mask.unsqueeze(1).unsqueeze(-1).unsqueeze(-1)
             head_mask = head_mask.to(dtype=torch.float32)
-            trans_out = self.transformer(x, head_mask = head_mask, return_states=return_states)
+            trans_out = self.transformer(x, head_mask = head_mask, return_states=return_states, width_n=width_n)
         
         if return_states:
             x, hidden_states = trans_out
@@ -331,7 +337,7 @@ class DynaViT(ViT):
     def __init__(
         self, *, image_size, patch_size, num_classes, dim, depth, heads, mlp_dim, 
         pool = 'cls', channels = 3, dim_head = 64, dropout = 0., emb_dropout = 0.,
-        width_mult = 1.0
+        width_mult = 1.0, widths=None
         ):
         super(DynaViT, self).__init__(
             image_size=image_size, patch_size=patch_size, num_classes=num_classes, 
@@ -339,7 +345,7 @@ class DynaViT(ViT):
             channels = channels, dim_head = dim_head, dropout = dropout, emb_dropout = dropout
         )
 
-        self.transformer = DynamicTransformer(dim, depth, heads, dim_head, mlp_dim, dropout, width_mult = width_mult)
+        self.transformer = DynamicTransformer(dim, depth, heads, dim_head, mlp_dim, dropout, width_mult = width_mult, widths=widths)
 
 """### Dyanmic Linear Layer"""
 
@@ -415,10 +421,11 @@ def TestDynaViT():
         image_size=image_size, patch_size=patch_size, num_classes=num_classes, 
         dim=dim, depth=depth, heads=heads, mlp_dim=mlp_dim, pool = 'cls', 
         channels = channels, dim_head = dim_head, dropout = dropout, emb_dropout = dropout,
-        width_mult = width_mult
+        width_mult = width_mult, widths=5
         )
     x = torch.randn([batch_size, channels, image_size, image_size])
-    out = model(x, head_mask = torch.ones([depth, heads]))
+    out = model(x, head_mask = torch.ones([depth, heads]), width_n=4)
+    print(model)
     assert x.shape[0] == out.shape[0] and out.shape[1] == num_classes
 
 TestDynaViT()
@@ -503,14 +510,24 @@ def train(
 
     if "model" not in args:
         print("No pretrained model found, initializing model")
-        model = DynaViT(
+        if mode=="difflayernorm":
+            model = DynaViT(
                     image_size=args["image_size"], patch_size=args["patch_size"], 
                     num_classes=args["num_classes"], dim=args["dim"], 
                     depth=args["depth"], heads=args["heads"], mlp_dim=args["mlp_dim"], 
                     pool = args["pool"], channels = args["channels"], dim_head = args["dim_head"], 
                     dropout = args["dropout"], emb_dropout = args["emb_dropout"],
-                    width_mult = 1.0
-        )
+                    width_mult = 1.0, widths=len(width_list)
+            )
+        else:
+            model = DynaViT(
+                        image_size=args["image_size"], patch_size=args["patch_size"], 
+                        num_classes=args["num_classes"], dim=args["dim"], 
+                        depth=args["depth"], heads=args["heads"], mlp_dim=args["mlp_dim"], 
+                        pool = args["pool"], channels = args["channels"], dim_head = args["dim_head"], 
+                        dropout = args["dropout"], emb_dropout = args["emb_dropout"],
+                        width_mult = 1.0
+            )
     else:
         model = args["model"]
         args["model_path"] = os.path.join(args["model_path"], "retrained")
@@ -563,6 +580,18 @@ def train(
                     train_data = train_data, eval_data = eval_data,
                     epochs = args["epochs"], loss_fn = args["loss_fn"],
                     width_list = width_list, optimizer=optimizer, scheduler=scheduler
+                    )
+            
+        if method == "difflayernorm":
+            print("Training Different Layer Norm wise")
+            width_list = sorted(width_list)
+            path = os.path.join(args["model_path"], "model_width_naive.pt")
+            train_naive(
+                    model, path = path,
+                    train_data = train_data, eval_data = eval_data,
+                    epochs = args["epochs"], loss_fn = args["loss_fn"],
+                    width_list = width_list, optimizer=optimizer, scheduler=scheduler,
+                    layernorm = True
                     )
         
         if method == "incremental":
@@ -665,7 +694,7 @@ def train_model(model, train_data, eval_data, path, epochs, loss_fn, optimizer, 
         print(f"Validation loss = {eval_loss}")
 
 def train_naive(model, train_data, eval_data, path, epochs, loss_fn, 
-                        width_list, optimizer, scheduler, **args):
+                        width_list, optimizer, scheduler, layernorm=False, **args):
     model.train()
     best_eval_loss = 1e8
     
@@ -678,9 +707,12 @@ def train_naive(model, train_data, eval_data, path, epochs, loss_fn,
             inputs, labels = tuple(t.to(device) for t in data)
             optimizer.zero_grad()
             width_list_loss = 0.0
-            for width in width_list:
+            for j, width in enumerate(width_list):
                 model.apply(lambda m: setattr(m, 'width_mult', width))
-                outputs = model(inputs)
+                if layernorm:
+                    outputs = model(inputs, width_n=j)
+                else:
+                    outputs = model(inputs)
                 loss = loss_fn(outputs, labels)
                 width_list_loss += loss.item()
                 loss.backward()
@@ -697,9 +729,12 @@ def train_naive(model, train_data, eval_data, path, epochs, loss_fn,
             for i, data in enumerate(tqdm(eval_data, desc="Evaluating", leave=False)):
                 inputs, labels = tuple(t.to(device) for t in data)
                 width_list_loss = 0.0
-                for width in width_list:
+                for j, width in enumerate(width_list):
                     model.apply(lambda m: setattr(m, 'width_mult', width))
-                    outputs = model(inputs)
+                    if layernorm:
+                        outputs = model(inputs, width_n=j)
+                    else:
+                        outputs = model(inputs)
                     loss = loss_fn(outputs, labels)
                     width_list_loss += loss.item()
 
@@ -766,7 +801,7 @@ def train_incremental(model, train_data, eval_data, path,
         print(f"Validation loss = {eval_loss}")
 
 def train_distillation(model, teacher_model, train_data, eval_data, path, 
-                      epochs, optimizer, scheduler, lambda1, lambda2, loss_fn,
+                      epochs, optimizer, scheduler, lambda1, lambda2,
                       **args):
     model.train()
     best_eval_loss = 1e8
@@ -788,7 +823,7 @@ def train_distillation(model, teacher_model, train_data, eval_data, path,
             with torch.no_grad():
                 teacher_out, teacher_hidden = teacher_model(inputs, return_states=True)
             student_out, student_hidden = model(inputs, return_states=True)
-            loss1 = soft_cross_entropy(student_out, teacher_out.detach())
+            loss1 = soft_cross_entropy_loss(student_out, teacher_out.detach())
             loss2 = loss_mse(student_hidden, teacher_hidden.detach())
 
             loss = loss1*lambda1 + loss2*lambda2
@@ -819,7 +854,7 @@ def train_distillation(model, teacher_model, train_data, eval_data, path,
 
         print(f"Validation loss = {eval_loss}")
 
-def print_metrics(model, test_data, metric_funcs, loss_fn=None, width_list=None):
+def print_metrics(model, test_data, metric_funcs, loss_fn=None, width_list=None, width_switch=False):
     model.eval()
     model.to(device)
 
@@ -831,7 +866,7 @@ def print_metrics(model, test_data, metric_funcs, loss_fn=None, width_list=None)
         for metric, args in metric_funcs:
             print(f" | {metric.__name__:^20}", end = "")
         print()
-        for width in width_list:
+        for k, width in enumerate(width_list):
             print(f"{width:^5}", end = "")
             model.apply(lambda m: setattr(m, 'width_mult', width))
             preds = []
@@ -841,7 +876,10 @@ def print_metrics(model, test_data, metric_funcs, loss_fn=None, width_list=None)
             with torch.no_grad():
                 for i, data in enumerate(test_data):
                     inputs, labels = tuple(t.to(device) for t in data)
-                    outputs = model(inputs)
+                    if width_switch:
+                        outputs = model(inputs, width_n=k)
+                    else:
+                        outputs = model(inputs)
                     loss = loss_fn(outputs, labels)
                     total_loss += loss.item()*inputs.size(0)
                     preds = preds + list(
