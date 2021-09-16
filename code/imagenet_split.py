@@ -16,8 +16,8 @@ for class_l in class_dict:
     p = os.path.join(path, class_l, "images")
     os.makedirs(p)
     for f in class_dict[class_l]:
-        print(f"Copying file {os.path.join(path, 'images', f)} to {p}")
-        copyfile(os.path.join(path, "images", f), p)
+        print(f"Copying file {os.path.join(path, 'images', f)} to {os.path.join(p, f)}")
+        copyfile(os.path.join(path, "images", f), os.path.join(p, f))
         
 class_dict = {}
 
@@ -34,5 +34,5 @@ for class_l in class_dict:
     p = os.path.join(path, class_l, "images")
     os.makedirs(p)
     for f in class_dict[class_l]:
-        print(f"Copying file {os.path.join(path, 'images', f)} to {p}")
-        copyfile(os.path.join(path, "images", f), p)
+        print(f"Copying file {os.path.join(path, 'images', f)} to {os.path.join(p, f)}")
+        copyfile(os.path.join(path, "images", f), os.path.join(p, f))
