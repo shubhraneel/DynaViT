@@ -706,7 +706,7 @@ def train_model(model, train_data, eval_data, path, epochs, loss_fn, optimizer, 
         print(f"Validation loss = {eval_loss}")
 
 def train_sandwich(model, train_data, eval_data, path, epochs, loss_fn,  
-                        optimizer, scheduler, layernorm=False, width_min = 0.25, width_max = 1, n_widths=5, 
+                        optimizer, scheduler, width_min = 0.25, width_max = 1, n_widths=5, 
                    **args
                    ):
     model.train()
@@ -725,10 +725,7 @@ def train_sandwich(model, train_data, eval_data, path, epochs, loss_fn,
             width_list = [width_min] + width_list + [width_max]
             for j, width in enumerate(width_list):
                 model.apply(lambda m: setattr(m, 'width_mult', width))
-                if layernorm:
-                    outputs = model(inputs, width_n=j)
-                else:
-                    outputs = model(inputs)
+                outputs = model(inputs)
                 loss = loss_fn(outputs, labels)
                 width_list_loss += loss.item()
                 loss.backward()
@@ -747,10 +744,7 @@ def train_sandwich(model, train_data, eval_data, path, epochs, loss_fn,
                 width_list_loss = 0.0
                 for j, width in enumerate(width_list):
                     model.apply(lambda m: setattr(m, 'width_mult', width))
-                    if layernorm:
-                        outputs = model(inputs, width_n=j)
-                    else:
-                        outputs = model(inputs)
+                    outputs = model(inputs)
                     loss = loss_fn(outputs, labels)
                     width_list_loss += loss.item()
 
