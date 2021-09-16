@@ -511,6 +511,7 @@ def train(
     if "model" not in args:
         print("No pretrained model found, initializing model")
         if method=="difflayernorm":
+            print("Here")
             model = DynaViT(
                     image_size=args["image_size"], patch_size=args["patch_size"], 
                     num_classes=args["num_classes"], dim=args["dim"], 
