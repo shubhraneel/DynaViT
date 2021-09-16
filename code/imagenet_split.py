@@ -14,7 +14,8 @@ with open(os.path.join(path, "val_annotations.txt")) as f:
 
 for class_l in class_dict:
     p = os.path.join(path, class_l, "images")
-    os.makedirs(p)
+    if not os.path.exists(p):
+        os.makedirs(p)
     for f in class_dict[class_l]:
         print(f"Copying file {os.path.join(path, 'images', f)} to {os.path.join(p, f)}")
         copyfile(os.path.join(path, "images", f), os.path.join(p, f))
@@ -32,7 +33,8 @@ with open(os.path.join(path, "val_annotations.txt")) as f:
 
 for class_l in class_dict:
     p = os.path.join(path, class_l, "images")
-    os.makedirs(p)
+    if not os.path.exists(p):
+        os.makedirs(p)
     for f in class_dict[class_l]:
         print(f"Copying file {os.path.join(path, 'images', f)} to {os.path.join(p, f)}")
         copyfile(os.path.join(path, "images", f), os.path.join(p, f))
