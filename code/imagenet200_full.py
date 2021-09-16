@@ -24,7 +24,7 @@ path_val = "../data/tiny-imagenet-200/val"
 train_dataset = ImageFolder(path_train, transform=transforms.ToTensor())
 train_sampler = RandomSampler(train_dataset)
 train_loader = DataLoader(train_dataset, sampler=train_sampler, batch_size=64)
-val_dataset = ImageFolder(path_val, transform=transforms.ToTensor(), train=False)
+val_dataset = ImageFolder(path_val, transform=transforms.ToTensor())
 val_sampler = SequentialSampler(val_dataset)
 val_loader = DataLoader(val_dataset, sampler=val_sampler, batch_size=64)
 
