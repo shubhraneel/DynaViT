@@ -30,14 +30,14 @@ val_loader = DataLoader(val_dataset, sampler=val_sampler, batch_size=64)
 
 train(
     train_loader, val_loader, mode='full', # method='incremental', width_list = [0.2, 0.4, 0.6, 0.8, 1],
-    image_size=64, patch_size=16, num_classes=200, dim=768, dim_head=64, heads=12,
-    depth=12, mlp_dim=3072, dropout=0.1, emb_dropout=0.1, channels=3, pool='cls',
+    image_size=64, patch_size=16, num_classes=200, dim=512, dim_head=64, heads=8,
+    depth=6, mlp_dim=1024, dropout=0.1, emb_dropout=0.1, channels=3, pool='cls',
     epochs=40, loss_fn=nn.CrossEntropyLoss(), model_path="../models/imagenet200"
     )
 
 model = DynaViT(
-            image_size=64, patch_size=16, num_classes=200, dim=768, dim_head=64, heads=12,
-            depth=12, mlp_dim=3072, dropout=0.1, emb_dropout=0.1, channels=3, pool='cls',
+            image_size=64, patch_size=16, num_classes=200, dim=512, dim_head=64, heads=8,
+            depth=6, mlp_dim=1024, dropout=0.1, emb_dropout=0.1, channels=3, pool='cls',
         )
 model.load_state_dict(torch.load("../models/imagenet200/model.pt"))
 
