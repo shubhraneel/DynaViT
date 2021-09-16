@@ -1,6 +1,7 @@
 from dynavit import DynaViT, train, print_metrics
 
 from torchvision.datasets import ImageNet
+from torchvision import transforms
 from sklearn.metrics import accuracy_score
 
 from torch.utils.data import RandomSampler, DataLoader, SequentialSampler
