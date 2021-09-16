@@ -1,6 +1,6 @@
 from dynavit import DynaViT, train, print_metrics
 
-from torchvision.datasets import ImageFolder
+from torchvision.datasets import ImageFolder, CIFAR10
 from torchvision import transforms
 from sklearn.metrics import accuracy_score
 
@@ -22,7 +22,7 @@ model = DynaViT(
 model.load_state_dict(torch.load("../models/cifar10/model_width_naive.pt"))
 
 print_metrics(
-    model, val_loader,
+    model, test_loader,
     [
      (accuracy_score, {}),
       ],
