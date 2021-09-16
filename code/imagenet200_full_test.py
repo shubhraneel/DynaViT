@@ -9,6 +9,7 @@ import torch
 import torch.nn as nn
 import sys
 
+path_val = "../data/tiny-imagenet-200/val"
 val_dataset = ImageFolder(path_val, transform=transforms.ToTensor())
 val_sampler = SequentialSampler(val_dataset)
 val_loader = DataLoader(val_dataset, sampler=val_sampler, batch_size=64)
