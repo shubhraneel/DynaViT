@@ -136,7 +136,7 @@ path_train = "../data/tiny-imagenet-200/train"
 path_val = "../data/tiny-imagenet-200/val"
 
 model = VisionTransformer(img_size=64,
-        patch_size=16, embed_dim=256, depth=6, num_heads=4, mlp_ratio=2, qkv_bias=True, num_classes=10,
+        patch_size=16, embed_dim=256, depth=6, num_heads=4, mlp_ratio=2, qkv_bias=True, num_classes=200,
         norm_layer=partial(nn.LayerNorm, eps=1e-6))
 
 train_dataset = ImageFolder(path_train, transform=transforms.ToTensor())
