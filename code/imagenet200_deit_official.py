@@ -14,7 +14,7 @@ from torch.utils.data import DataLoader, SequentialSampler, RandomSampler
 from torchvision.datasets import CIFAR10, CIFAR100, ImageNet, ImageFolder
 from torchvision import transforms
 from torch.optim import Adam, lr_scheduler
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 
 from functools import partial
 
