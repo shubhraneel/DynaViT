@@ -144,11 +144,15 @@ train_transforms = transforms.Compose([
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor()
     ])
+val_transforms = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor()
+    ])
 
 train_dataset = ImageFolder(path_train, transform=train_transforms)
 train_sampler = RandomSampler(train_dataset)
 train_loader = DataLoader(train_dataset, sampler=train_sampler, batch_size=64)
-val_dataset = ImageFolder(path_val, transform=train_transforms)
+val_dataset = ImageFolder(path_val, transform=val_transforms)
 val_sampler = SequentialSampler(val_dataset)
 test_loader = DataLoader(val_dataset, sampler=val_sampler, batch_size=64)
 
