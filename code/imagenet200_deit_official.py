@@ -132,24 +132,30 @@ def print_metrics(model, test_data, metric_funcs, loss_fn=None, width_list=None,
             perf = metric(truths, preds, **args)
             print(f"{metric.__name__}: {perf:^.4f}")
 
-path_train = "../data/tiny-imagenet-200/train"
-path_val = "../data/tiny-imagenet-200/val"
+path_train = "../data/ImageNet200FullSize/train"
+path_val = "../data/ImageNet200FullSize/val"
 
-model = VisionTransformer(img_size=64,
-        patch_size=16, embed_dim=256, depth=6, num_heads=4, mlp_ratio=2, qkv_bias=True, num_classes=200,
+model = VisionTransformer(
+        patch_size=16, embed_dim=384, depth=12, num_heads=6, mlp_ratio=4, qkv_bias=True,
         norm_layer=partial(nn.LayerNorm, eps=1e-6))
 
-train_dataset = ImageFolder(path_train, transform=transforms.ToTensor())
+train_transforms = transforms.Compose([
+        transforms.RandomResizedCrop(224),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor()
+    ])
+
+train_dataset = ImageFolder(path_train, transform=train_transforms)
 train_sampler = RandomSampler(train_dataset)
 train_loader = DataLoader(train_dataset, sampler=train_sampler, batch_size=64)
-val_dataset = ImageFolder(path_val, transform=transforms.ToTensor())
+val_dataset = ImageFolder(path_val, transform=train_transforms)
 val_sampler = SequentialSampler(val_dataset)
 test_loader = DataLoader(val_dataset, sampler=val_sampler, batch_size=64)
 
 optimizer = Adam(model.parameters(), lr=1e-4)
-scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, patience=2)
+scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, patience=7, factor=0.3)
 
-train_model(model, train_loader, test_loader, "../models/official_deit.pt", epochs=10, loss_fn=nn.CrossEntropyLoss(), optimizer=optimizer, scheduler=scheduler)
+train_model(model, train_loader, test_loader, "../models/official_deit.pt", epochs=100, loss_fn=nn.CrossEntropyLoss(), optimizer=optimizer, scheduler=scheduler)
 
 model.load_state_dict(torch.load("../models/official_deit.pt"))
 
