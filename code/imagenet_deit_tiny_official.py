@@ -8,6 +8,8 @@ Original file is located at
 """
 
 from timm.models.vision_transformer import VisionTransformer
+from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
+from timm.data import create_transform
 import torch
 from torch import nn, einsum
 from torch.utils.data import DataLoader, SequentialSampler, RandomSampler
@@ -139,17 +141,21 @@ model = VisionTransformer(
         patch_size=16, embed_dim=192, depth=12, num_heads=3, mlp_ratio=4, qkv_bias=True,
         norm_layer=partial(nn.LayerNorm, eps=1e-6))
 
-train_transforms = transforms.Compose([
-        transforms.RandomResizedCrop(224),
-        transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    ])
+train_transforms = create_transform(
+            input_size=224,
+            is_training=True,
+            color_jitter=0.4,
+            auto_augment='rand-m9-mstd0.5-inc1',
+            interpolation='bicubic',
+            re_prob=0.25,
+            re_mode='pixel',
+            re_count=1
+        )
 val_transforms = transforms.Compose([
         transforms.Resize(256),
         transforms.CenterCrop(224),
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        transforms.Normalize(mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD)
     ])
 
 train_dataset = ImageFolder(path_train, transform=train_transforms)
@@ -162,9 +168,9 @@ test_loader = DataLoader(val_dataset, sampler=val_sampler, batch_size=64)
 optimizer = Adam(model.parameters(), lr=1e-4)
 scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, patience=7, factor=0.3)
 
-train_model(model, train_loader, test_loader, "../models/official_deit_tiny.pt", epochs=100, loss_fn=nn.CrossEntropyLoss(), optimizer=optimizer, scheduler=scheduler)
+train_model(model, train_loader, test_loader, "../models/official_deit_tiny_aug.pt", epochs=100, loss_fn=nn.CrossEntropyLoss(), optimizer=optimizer, scheduler=scheduler)
 
-model.load_state_dict(torch.load("../models/official_deit_tiny.pt"))
+model.load_state_dict(torch.load("../models/official_deit_tiny_aug.pt"))
 
 from sklearn.metrics import accuracy_score
 print_metrics(model, test_loader, [
