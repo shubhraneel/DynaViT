@@ -240,8 +240,8 @@ class Transformer(nn.Module):
     def forward(self, x, head_mask = None, return_states = False, width_n=None):
         hidden_states = []
         for i, (drop_path, attn, ff) in enumerate(self.layers):
-            x = drop_path(attn(x, head_mask = None, width_n=width_n)) + x
-            x = drop_path(ff(x, width_n=width_n)) + x
+            x = drop_path(attn(x)) + x
+            x = drop_path(ff(x)) + x
             hidden_states.append(x)
         if return_states:
             return x, hidden_states
