@@ -7,9 +7,7 @@ from torchvision.datasets import CIFAR10, CIFAR100, ImageNet
 from torch.optim import Adam, lr_scheduler
 from torchvision import transforms
 
-import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
