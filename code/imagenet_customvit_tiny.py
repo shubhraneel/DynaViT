@@ -20,12 +20,9 @@ from tqdm import tqdm
 
 from functools import partial
 
+
 if torch.cuda.is_available():
-<<<<<<< HEAD
     device = torch.device('cuda:1')
-=======
-    device = torch.device('cuda')
->>>>>>> 3457ff997074908c54dd34799098ede48dea9261
     print(f'{torch.cuda.device_count()} GPU(s) available.')
     print('Device name:', torch.cuda.get_device_name(0))
 else:
