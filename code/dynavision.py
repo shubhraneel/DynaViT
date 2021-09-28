@@ -362,7 +362,7 @@ class VisionTransformer(nn.Module):
         if distilled:
             self.head_dist = nn.Linear(self.embed_dim, self.num_classes) if num_classes > 0 else nn.Identity()
 
-        self.init_weights(weight_init)
+        # self.init_weights(weight_init)
 
     def init_weights(self, mode=''):
         assert mode in ('jax', 'jax_nlhb', 'nlhb', '')
