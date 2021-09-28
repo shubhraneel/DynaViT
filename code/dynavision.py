@@ -167,7 +167,7 @@ class Attention(nn.Module):
         else:
             self.to_out = nn.Identity()
 
-    def forward(self, x):
+    def forward(self, x, head_mask = None):
         b, n, _, h = *x.shape, self.heads
         qkv = [self.q(x), self.k(x), self.v(x)]
         q, k, v = map(lambda t: rearrange(t, 'b n (h d) -> b h n d', h = h), qkv)
