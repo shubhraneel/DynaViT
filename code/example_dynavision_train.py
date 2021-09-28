@@ -40,7 +40,7 @@ test_loader = DataLoader(val_dataset, sampler=val_sampler, batch_size=64)
 
 train(train_loader, test_loader, mode="width", method="naive", 
     model_path="../models/", epochs=100, img_size=224, patch_size=16, num_classes=200, 
-    embed_dim=192, depth=12, num_heads=3, mlp_ratio=4,  in_chans = 3, 
+    embed_dim=192, depth=12, num_heads=3, mlp_ratio=4,  in_chans = 3, drop_rate=0,
     qkv_bias=True, norm_layer=partial(nn.LayerNorm, eps=1e-6)
 )
 
