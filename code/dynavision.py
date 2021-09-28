@@ -538,7 +538,7 @@ class DynamicVisionTransformer(nn.Module):
         else:
             return x[:, 0], x[:, 1]
 
-    def forward(self, x, head_mask, width_n = None):
+    def forward(self, x, head_mask=None, width_n = None):
         if head_mask is None:
             head_mask = [None] * self.depth
         else:
