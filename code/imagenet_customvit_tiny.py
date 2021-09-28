@@ -143,6 +143,8 @@ model = VisionTransformer(img_size=224, patch_size=16, num_classes=200,
         in_chans = 3,  qkv_bias=True,
         norm_layer=partial(nn.LayerNorm, eps=1e-6))
 
+model.load_state_dict(torch.load('../models/official_customvit_aug.pt'))
+
 train_transforms = create_transform(
             input_size=224,
             is_training=True,
