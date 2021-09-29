@@ -157,9 +157,9 @@ class Attention(nn.Module):
 
         self.attend = nn.Softmax(dim = -1)
         self.attn_dropout = nn.Dropout(attn_dropout)
-        self.q = nn.Linear(dim, inner_dim, bias = False)
-        self.k = nn.Linear(dim, inner_dim, bias = False)
-        self.v = nn.Linear(dim, inner_dim, bias = False)
+        self.q = nn.Linear(dim, inner_dim, bias = True)
+        self.k = nn.Linear(dim, inner_dim, bias = True)
+        self.v = nn.Linear(dim, inner_dim, bias = True)
 
         if self.project_out:
             self.to_out = nn.Linear(inner_dim, dim)
