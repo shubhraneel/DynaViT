@@ -169,7 +169,7 @@ val_dataset = ImageFolder(path_val, transform=val_transforms)
 val_sampler = SequentialSampler(val_dataset)
 test_loader = DataLoader(val_dataset, sampler=val_sampler, batch_size=64)
 
-optimizer = Adam(model.parameters(), lr=5e-4)
+optimizer = Adam(model.parameters(), lr=1e-4)
 scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, patience=7, factor=0.3)
 
 train_model(model, train_loader, test_loader, "../models/official_customvit_aug.pt", epochs=100, loss_fn=nn.CrossEntropyLoss(), optimizer=optimizer, scheduler=scheduler)

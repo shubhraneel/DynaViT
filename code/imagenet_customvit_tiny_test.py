@@ -166,7 +166,7 @@ val_dataset = ImageFolder(path_val, transform=val_transforms)
 val_sampler = SequentialSampler(val_dataset)
 test_loader = DataLoader(val_dataset, sampler=val_sampler, batch_size=64)
 
-optimizer = Adam(model.parameters(), lr=5e-4)
+optimizer = Adam(model.parameters(), lr=1e-4)
 scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, patience=7, factor=0.3)
 
 model.load_state_dict(torch.load("../models/official_customvit_aug.pt"))
