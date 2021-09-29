@@ -75,9 +75,9 @@ class PreNorm(nn.Module):
         super().__init__()
         self.widths = widths
         if widths is None:
-            self.norm = nn.LayerNorm(dim)
+            self.norm = nn.LayerNorm(dim, eps=1e-6)
         else:
-            self.norms = nn.ModuleList([nn.LayerNorm(dim) for _ in range(widths)])
+            self.norms = nn.ModuleList([nn.LayerNorm(dim, eps=1e-6) for _ in range(widths)])
         self.fn = fn
     def forward(self, x, width_n=None, **kwargs):
         if self.widths is None:
@@ -263,13 +263,13 @@ class Transformer(nn.Module):
         self.layers = nn.ModuleList([])
         for i in range(depth):
             self.layers.append(nn.ModuleList([
-                nn.Identity() if drop_paths is None else DropPath(drop_paths[i]),
                 PreNorm(dim, Attention(dim, heads = heads, dim_head = dim_head, dropout = dropout, attn_dropout=attn_drop)),
+                nn.Identity() if drop_paths is None else DropPath(drop_paths[i]),
                 PreNorm(dim, FeedForward(dim, mlp_dim, dropout = dropout))
             ]))
     def forward(self, x, head_mask = None, return_states = False, width_n=None):
         hidden_states = []
-        for i, (drop_path, attn, ff) in enumerate(self.layers):
+        for i, (attn, drop_path, ff) in enumerate(self.layers):
             x = drop_path(attn(x, head_mask = head_mask[i], width_n=width_n)) + x
             x = drop_path(ff(x, width_n=width_n)) + x
             hidden_states.append(x)
@@ -283,8 +283,8 @@ class DynamicTransformer(Transformer):
         self.layers = nn.ModuleList([])
         for i in range(depth):
             self.layers.append(nn.ModuleList([
-                nn.Identity() if drop_paths is None else DropPath(drop_paths[i]),
                 PreNorm(dim, DynamicAttention(dim, heads = heads, dim_head = dim_head, dropout = dropout, width_mult = width_mult, attn_dropout=attn_drop), widths=widths),
+                nn.Identity() if drop_paths is None else DropPath(drop_paths[i]),
                 PreNorm(dim, DynamicFeedForward(dim, mlp_dim, heads, dropout = dropout, width_mult = width_mult), widths=widths)
             ]))
 
@@ -300,7 +300,7 @@ class VisionTransformer(nn.Module):
 
     def __init__(self, img_size=224, patch_size=16, in_chans=3, num_classes=1000, embed_dim=768, depth=12,
                  num_heads=12, mlp_ratio=4., qkv_bias=True, representation_size=None, distilled=False,
-                 drop_rate=0., attn_drop_rate=0., drop_path_rate=0., embed_layer=PatchEmbed, norm_layer=None,
+                 drop_rate=None, attn_drop_rate=0., drop_path_rate=0., embed_layer=PatchEmbed, norm_layer=None,
                  act_layer=None, head_mask=None, weight_init=''):
         """
         Args:
@@ -340,7 +340,10 @@ class VisionTransformer(nn.Module):
         self.pos_embed = nn.Parameter(torch.zeros(1, num_patches + self.num_tokens, embed_dim))
         self.pos_drop = nn.Dropout(p=drop_rate)
 
-        dpr = [x.item() for x in torch.linspace(0, drop_path_rate, depth)]  # stochastic depth decay rule
+        if drop_path_rate is None:
+            dpr = None
+        else:
+            dpr = [x.item() for x in torch.linspace(0, drop_path_rate, depth)]  # stochastic depth decay rule
         dim_head = embed_dim // num_heads
         mlp_dim = embed_dim * mlp_ratio
         self.blocks = Transformer(embed_dim, depth, num_heads, dim_head, mlp_dim, drop_rate, attn_drop=attn_drop_rate, drop_paths=dpr)
@@ -480,7 +483,10 @@ class DynamicVisionTransformer(nn.Module):
         self.pos_embed = nn.Parameter(torch.zeros(1, num_patches + self.num_tokens, embed_dim))
         self.pos_drop = nn.Dropout(p=drop_rate)
 
-        dpr = [x.item() for x in torch.linspace(0, drop_path_rate, depth)]  # stochastic depth decay rule
+        if drop_path_rate is None:
+            dpr = None
+        else:
+            dpr = [x.item() for x in torch.linspace(0, drop_path_rate, depth)]  # stochastic depth decay rule
         dim_head = embed_dim // num_heads
         mlp_dim = embed_dim * mlp_ratio
         self.blocks = DynamicTransformer(embed_dim, depth, num_heads, dim_head, mlp_dim, drop_rate, attn_drop=attn_drop_rate, drop_paths=dpr, width_mult = width_mult, widths=widths)
