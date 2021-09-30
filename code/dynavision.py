@@ -709,7 +709,7 @@ def train(
             )
     else:
         model = args["model"]
-        args["model_path"] = os.path.join(args["model_path"], "retrained")
+        # args["model_path"] = os.path.join(args["model_path"], "retrained")
 
     model.to(device)
 

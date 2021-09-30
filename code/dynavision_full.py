@@ -38,7 +38,15 @@ val_dataset = ImageFolder(path_val, transform=val_transforms)
 val_sampler = SequentialSampler(val_dataset)
 test_loader = DataLoader(val_dataset, sampler=val_sampler, batch_size=64)
 
-train(train_loader, test_loader, mode="full", 
+model = DynamicVisionTransformer(img_size=224, patch_size=16, 
+        num_classes=200, 
+        embed_dim=192, depth=12, num_heads=3, mlp_ratio=4,  
+        in_chans = 3, qkv_bias=True, 
+        norm_layer=partial(nn.LayerNorm, eps=1e-6))
+
+model.load_state_dict(torch.load("../models/model.pt"))
+
+train(train_loader, test_loader, mode="full", model=model,
     model_path="../models/", epochs=100, img_size=224, patch_size=16, num_classes=200, 
     embed_dim=192, depth=12, num_heads=3, mlp_ratio=4,  in_chans = 3, drop_rate=0, attn_drop_rate=0, drop_path_rate=0, distilled=False, act_layer=None, representation_size=None, loss_fn=nn.CrossEntropyLoss(),
     qkv_bias=True, norm_layer=partial(nn.LayerNorm, eps=1e-6)
