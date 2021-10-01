@@ -1,4 +1,4 @@
-from .deit_modified import VisionTransformer
+from deit_modified import VisionTransformer
 from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 from timm.data import create_transform
 import torch
@@ -8,7 +8,7 @@ from torchvision.datasets import CIFAR10, CIFAR100, ImageNet, ImageFolder
 from torchvision import transforms
 from torch.optim import Adam, lr_scheduler
 from tqdm import tqdm
-from .utils import train, print_accuracy
+from utils import train, print_accuracy
 
 from functools import partial
 
