@@ -279,7 +279,7 @@ class Attention(nn.Module):
     def forward(self, x):
 
         B, N, C = x.shape
-        num_heads = round(self.num_heads * self.q.width_mult)
+        num_heads = round(self.num_heads * self.qkv.width_mult)
         qkv = self.qkv(x).reshape(B, N, 3, num_heads, C // num_heads).permute(2, 0, 3, 1, 4)
         q, k, v = qkv[0], qkv[1], qkv[2]   # make torchscript happy (cannot use tensor as tuple)
 
