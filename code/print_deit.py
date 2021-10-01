@@ -30,6 +30,6 @@ else:
     device = torch.device("cpu")
 
 model = VisionTransformer(
-        patch_size=16, embed_dim=192, depth=12, num_heads=3, mlp_ratio=4, qkv_bias=True, num_classes=200
+        patch_size=16, embed_dim=192, depth=12, num_heads=3, mlp_ratio=4, qkv_bias=True, num_classes=200,
         norm_layer=partial(nn.LayerNorm, eps=1e-6))
 print(count_parameters(model))
