@@ -182,7 +182,7 @@ def head_round_to_nearest(input_size, width_mult, num_heads, min_value=1):
 
 class QKVDynaLinear(nn.Linear):
     def __init__(self, in_features, out_features, num_heads, bias=True, dyna_dim=[True, True], width_mult=1.0):
-        super(DynaLinear, self).__init__(
+        super(QKVDynaLinear, self).__init__(
             in_features, out_features, bias=bias)
         self.in_features_max = in_features
         assert out_features % 3 == 0, "out_features should be a multiple of 3"
