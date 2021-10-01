@@ -17,6 +17,7 @@ from torchvision.datasets import CIFAR10, CIFAR100, ImageNet, ImageFolder
 from torchvision import transforms
 from torch.optim import Adam, lr_scheduler
 from tqdm import tqdm
+from utils import count_parameters
 
 from functools import partial
 
@@ -31,5 +32,4 @@ else:
 model = VisionTransformer(
         patch_size=16, embed_dim=192, depth=12, num_heads=3, mlp_ratio=4, qkv_bias=True,
         norm_layer=partial(nn.LayerNorm, eps=1e-6))
-
-print(model)
+count_parameters(model)
