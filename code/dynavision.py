@@ -716,7 +716,7 @@ def train(
     if weights_file is not None:
         model.load_state_dict(torch.load(weights_file))
     
-    optimizer = Adam(model.parameters(), lr=5e-4)
+    optimizer = Adam(model.parameters(), lr=1e-4)
     scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, patience=2)
 
     if mode == "full":
