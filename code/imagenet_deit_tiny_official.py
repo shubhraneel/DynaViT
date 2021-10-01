@@ -137,7 +137,7 @@ def print_metrics(model, test_data, metric_funcs, loss_fn=None, width_list=None,
 path_train = "../data/ImageNet200FullSize/train"
 path_val = "../data/ImageNet200FullSize/val"
 
-model = VisionTransformer(
+model = VisionTransformer(num_classes=200,
         patch_size=16, embed_dim=192, depth=12, num_heads=3, mlp_ratio=4, qkv_bias=True,
         norm_layer=partial(nn.LayerNorm, eps=1e-6))
 
