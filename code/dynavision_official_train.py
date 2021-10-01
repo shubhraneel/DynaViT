@@ -48,7 +48,7 @@ model = VisionTransformer(img_size=224, patch_size=16,
 optimizer = Adam(model.parameters(), lr=5e-4)
 scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, patience=7, factor=0.3)
 
-train(model, train_loader, test_loader, mode="full",
+train(model, train_loader, test_loader, optimizer, scheduler, mode="full",
     model_path="../models/", epochs=100, loss_fn=nn.CrossEntropyLoss(), prefix="official"
 )
 
