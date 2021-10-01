@@ -717,7 +717,7 @@ def train(
         model.load_state_dict(torch.load(weights_file))
     
     optimizer = Adam(model.parameters(), lr=1e-4)
-    scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, patience=2)
+    scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, patience=7, factor=0.3)
 
     if mode == "full":
         train_model(model, path = os.path.join(args["model_path"], "model.pt"),
