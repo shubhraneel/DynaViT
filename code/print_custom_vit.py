@@ -7,7 +7,7 @@ Original file is located at
     https://colab.research.google.com/drive/1OtvGSH_lSOHjmnu_Dsepz2xj_FGnnA6n
 """
 
-from dynavision import VisionTransformer
+from deit_modified import VisionTransformer
 from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 from timm.data import create_transform
 import torch
