@@ -49,7 +49,7 @@ optimizer = Adam(model.parameters(), lr=5e-4)
 scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, patience=7, factor=0.3)
 
 train(model, train_loader, test_loader, optimizer, scheduler, mode="width", method="separate",
-    model_path="../models/", epochs=100, loss_fn=nn.CrossEntropyLoss(), prefix="official", width_sep=0.2
+    model_path="../models/", epochs=100, loss_fn=nn.CrossEntropyLoss(), prefix="official", width_sep=0.4
 )
 
 model = VisionTransformer(img_size=224, patch_size=16, 
@@ -58,7 +58,7 @@ model = VisionTransformer(img_size=224, patch_size=16,
         in_chans = 3, qkv_bias=True, 
         norm_layer=partial(nn.LayerNorm, eps=1e-6))
 
-model.load_state_dict(torch.load("../models/officialmodel.pt"))
+# model.load_state_dict(torch.load("../models/officialmodel.pt"))
 
-from sklearn.metrics import accuracy_score
-print_accuracy(model, test_loader)
+# from sklearn.metrics import accuracy_score
+# print_accuracy(model, test_loader)
