@@ -612,7 +612,7 @@ def print_metrics(model, test_data, metric_funcs, loss_fn=None, width_list=None,
 def print_accuracy(model, test_data, loss_fn=None, width_list=None, width_switch=False):
     model.eval()
     model.to(device)
-    metric_funcs = (accuracy_score, {})
+    metric_funcs = [(accuracy_score, {})]
 
     if loss_fn is None:
         loss_fn = nn.CrossEntropyLoss()
