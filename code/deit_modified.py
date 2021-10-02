@@ -280,7 +280,9 @@ class Attention(nn.Module):
 
         B, N, C = x.shape
         num_heads = round(self.num_heads * self.qkv.width_mult)
-        qkv = self.qkv(x).reshape(B, N, 3, num_heads, C // num_heads).permute(2, 0, 3, 1, 4)
+        qk = self.qkv(x)
+        print(qk.shape)
+        qkv = qk.reshape(B, N, 3, num_heads, C // num_heads).permute(2, 0, 3, 1, 4)
         q, k, v = qkv[0], qkv[1], qkv[2]   # make torchscript happy (cannot use tensor as tuple)
 
         attn = (q @ k.transpose(-2, -1)) * self.scale
