@@ -281,7 +281,7 @@ class Attention(nn.Module):
         B, N, C = x.shape
         num_heads = round(self.num_heads * self.qkv.width_mult)
         qk = self.qkv(x)
-        print(qk.shape)
+        # print(qk.shape)
         qkv = qk.reshape(B, N, 3, num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
         q, k, v = qkv[0], qkv[1], qkv[2]   # make torchscript happy (cannot use tensor as tuple)
 
