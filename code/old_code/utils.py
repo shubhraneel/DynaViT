@@ -33,6 +33,14 @@ from tqdm import tqdm
 #except:
     #colab = False
 
+if torch.cuda.is_available():
+    device = torch.device('cuda')
+    print(f'{torch.cuda.device_count()} GPU(s) available.')
+    print('Device name:', torch.cuda.get_device_name(0))
+else:
+    print('No GPU available, using the CPU instead.')
+    device = torch.device("cpu")
+
 #helpers
 #def show_torch_img(image):
     #plt.imshow(transforms.ToPILImage()(image))
@@ -115,7 +123,7 @@ def reorder_neuron_head(model, head_importance, neuron_importance):
 def train(
     model, train_data, eval_data, optimizer, scheduler, 
     mode = "full", method = None, width_list = None, width_sep = None,
-    weights_file = None, model_path = "./", loss_fn=nn.CrossEntropyLoss(), epochs=100, prefix="", **args
+    weights_file = None, model_path = "./", loss_fn=nn.CrossEntropyLoss(), epochs=100, prefix=""
     ):
     assert mode in ["full", "width", "height"], "Wrong mode input"
 
@@ -276,10 +284,9 @@ def train(
                 )
                 model.load_state_dict(torch.load(path))
 
-def train_model(model, train_data, eval_data, path, epochs, loss_fn, optimizer, scheduler, device='cuda', **args):
+def train_model(model, train_data, eval_data, path, epochs, loss_fn, optimizer, scheduler, **args):
     model.train()
     best_eval_loss = 1e8
-    model.to(device)
     
     for epoch in tqdm(range(epochs), desc="Epochs", leave=False):
         total_loss = 0.0
@@ -321,8 +328,6 @@ def train_naive(model, train_data, eval_data, path, epochs, loss_fn,
                         width_list, optimizer, scheduler, layernorm=False, **args):
     model.train()
     best_eval_loss = 1e8
-
-    model.to(device)
     
     for epoch in tqdm(range(epochs), desc="Epochs", leave=False):
         total_loss = 0.0
@@ -604,7 +609,7 @@ def print_metrics(model, test_data, metric_funcs, loss_fn=None, width_list=None,
             perf = metric(truths, preds, **args)
             print(f"{metric.__name__}: {perf:^.4f}")
 
-def print_accuracy(model, test_data, loss_fn=None, width_list=None, width_switch=False, device=None):
+def print_accuracy(model, test_data, loss_fn=None, width_list=None, width_switch=False):
     model.eval()
     model.to(device)
     metric_funcs = [(accuracy_score, {})]
@@ -671,3 +676,5 @@ def print_accuracy(model, test_data, loss_fn=None, width_list=None, width_switch
 
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+
